@@ -1,0 +1,9 @@
+server:
+  port: 9090
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  
+  

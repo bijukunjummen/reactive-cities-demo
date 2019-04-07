@@ -1,0 +1,13 @@
+= Run the App
+
+[source, bash]
+----
+./gradlew clean bootRun
+----
+
+[source, bash]
+----
+http 'http://localhost:9090/cities'
+http POST 'http://localhost:9090/cities' name="city1" country="USA" pop="100000"
+http 'http://localhost:9090/cityids'
+----
