@@ -1,4 +1,4 @@
-package samples.geo;
+package samples.geo.cities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

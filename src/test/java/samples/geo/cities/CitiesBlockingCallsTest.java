@@ -1,6 +1,5 @@
-package samples.geo;
+package samples.geo.cities;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -47,11 +46,4 @@ public class CitiesBlockingCallsTest {
         City city = restTemplate.getForObject("http://localhost:9090/cities/" + id, City.class);
         return city;
     }
-
-
-    static class CityIds {
-        @JsonValue
-        List<String> cityIds;
-    }
-
 }

@@ -1,4 +1,4 @@
-package samples.geo;
+package samples.geo.cities;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -22,8 +22,6 @@ public class CitiesReactorTest {
     public void testGetCities() throws Exception {
         Flux<Long> cityIdsFlux = getCityIds();
         Flux<City> citiesFlux = cityIdsFlux
-                .publishOn(Schedulers.newParallel("pub-on"))
-                // .subscribeOn(Schedulers.newElastic("sub-on"))
                 .flatMap(cityId -> getCityDetail(cityId));
 
         CountDownLatch cl = new CountDownLatch(1);
@@ -43,8 +41,10 @@ public class CitiesReactorTest {
         return webClient.get()
                 .uri("/cityids")
                 .exchange()
-                .flatMapMany(response ->
-                        response.bodyToFlux(Long.class));
+                .flatMapMany(response -> {
+                    LOGGER.info("Received cities..");
+                    return response.bodyToFlux(Long.class);
+                });
 
     }
 
