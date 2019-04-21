@@ -22,7 +22,7 @@ public class CitiesReactorTest {
     public void testGetCities() throws Exception {
         Flux<Long> cityIdsFlux = getCityIds();
         Flux<City> citiesFlux = cityIdsFlux
-                .flatMap(cityId -> getCityDetail(cityId));
+                .flatMap(this::getCityDetail);
 
         CountDownLatch cl = new CountDownLatch(1);
 

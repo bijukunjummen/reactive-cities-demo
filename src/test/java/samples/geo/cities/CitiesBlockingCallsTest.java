@@ -32,7 +32,8 @@ public class CitiesBlockingCallsTest {
     }
 
     List<String> getCityIds() {
-        ResponseEntity<String> cityIdsEntity = restTemplate.getForEntity("http://localhost:9090/cityids", String.class);
+        ResponseEntity<String> cityIdsEntity = restTemplate
+                .getForEntity("http://localhost:9090/cityids", String.class);
         try {
             List<String> cityIds = objectMapper.readValue(cityIdsEntity.getBody(), new TypeReference<List<String>>() {
             });

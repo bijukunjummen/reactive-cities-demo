@@ -26,19 +26,7 @@ public class CitiesNingCompletableFutureTest {
 
     @Test
     public void getCityDetails() {
-        CompletableFuture<List<Long>> cityIdsFuture = asyncHttpClient
-                .prepareGet("http://localhost:9090/cityids")
-                .execute()
-                .toCompletableFuture()
-                .thenApply(response -> {
-                    String s = response.getResponseBody();
-                    try {
-                        List<Long> l = objectMapper.readValue(s, new TypeReference<List<Long>>() {});
-                        return l;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+        CompletableFuture<List<Long>> cityIdsFuture = getCityIds();
 
         CompletableFuture<List<City>> citiesCompletableFuture = cityIdsFuture.thenCompose(l -> {
             List<CompletableFuture<City>> citiesCompletable =
@@ -59,6 +47,22 @@ public class CitiesNingCompletableFutureTest {
 
         cities.forEach(city -> LOGGER.info(city.toString()));
 
+    }
+
+    private CompletableFuture<List<Long>> getCityIds() {
+        return asyncHttpClient
+                .prepareGet("http://localhost:9090/cityids")
+                .execute()
+                .toCompletableFuture()
+                .thenApply(response -> {
+                    String s = response.getResponseBody();
+                    try {
+                        List<Long> l = objectMapper.readValue(s, new TypeReference<List<Long>>() {});
+                        return l;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
 
