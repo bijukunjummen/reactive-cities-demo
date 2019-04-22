@@ -11,6 +11,7 @@ import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,48 +54,74 @@ public class ReactiveExecutionModel {
 
     @Test
     public void test_02_ColdPublisher() throws InterruptedException {
-        Flux<Integer> source = Flux.range(1, 5)
-                .doOnNext(n -> LOGGER.info("doOnNext hook: {}", n));
+        Flux<Integer> source = Flux.fromStream(() -> {
+            LOGGER.info("A costly call!");
+            return List.of(1, 2, 3).stream();
+        }).doOnNext(n -> LOGGER.info("doOnNext hook: {}", n));
 
-        // source.subscribe(
-        //         n -> LOGGER.info("sub 1: {}", n),
-        //         t -> LOGGER.error(t.getMessage(), t),
-        //         () -> {
-        //         }
-        // );
-        //
-        // source.subscribe(
-        //         n -> LOGGER.info("sub 2: {}", n),
-        //         t -> LOGGER.error(t.getMessage(), t),
-        //         () -> {
-        //         }
-        // );
+        CountDownLatch latch = new CountDownLatch(2);
+
+        source.subscribe(
+                n -> LOGGER.info("sub 1: {}", n),
+                t -> {
+                    LOGGER.error(t.getMessage(), t);
+                    latch.countDown();
+                },
+                () -> {
+                    latch.countDown();
+                }
+        );
+
+        source.subscribe(
+                n -> LOGGER.info("sub 2: {}", n),
+                t -> {
+                    LOGGER.error(t.getMessage(), t);
+                    latch.countDown();
+                },
+                () -> {
+                    latch.countDown();
+                }
+        );
+
+        latch.await(5, TimeUnit.SECONDS);
     }
 
     @Test
     public void test_03_HotPublisher() throws InterruptedException {
-        Flux<Integer> source = Flux.range(1, 5)
-                // .delayElements(Duration.ofMillis(200))
+        Flux<Integer> source = Flux.fromStream(() -> {
+            LOGGER.info("A costly call!");
+            return List.of(1, 2, 3).stream();
+        })
+                .subscribeOn(Schedulers.elastic())
                 .doOnNext(n -> LOGGER.info("doOnNext hook: {}", n))
                 .publish()
                 .autoConnect();
 
+        CountDownLatch latch = new CountDownLatch(2);
+
         source.subscribe(
                 n -> LOGGER.info("sub 1: {}", n),
-                t -> LOGGER.error(t.getMessage(), t),
+                t -> {
+                    LOGGER.error(t.getMessage(), t);
+                    latch.countDown();
+                },
                 () -> {
+                    latch.countDown();
                 }
         );
 
-        // Thread.sleep(500);
-        // source.subscribe(
-        //         n -> LOGGER.info("sub 2: {}", n),
-        //         t -> LOGGER.error(t.getMessage(), t),
-        //         () -> {
-        //         }
-        // );
-        //
-        // Thread.sleep(5000);
+        source.subscribe(
+                n -> LOGGER.info("sub 2: {}", n),
+                t -> {
+                    LOGGER.error(t.getMessage(), t);
+                    latch.countDown();
+                },
+                () -> {
+                    latch.countDown();
+                }
+        );
+
+        latch.await(5, TimeUnit.SECONDS);
     }
 
     @Test
