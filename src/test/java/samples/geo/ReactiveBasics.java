@@ -25,11 +25,11 @@ public class ReactiveBasics {
                 "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"
         );
 
-        // flux.subscribe(
-        //         l -> LOGGER.info("Got {}", l),
-        //         t -> t.printStackTrace(),
-        //         () -> LOGGER.info("DONE!!")
-        // );
+        flux.subscribe(
+                l -> LOGGER.info("Got {}", l),
+                t -> t.printStackTrace(),
+                () -> LOGGER.info("DONE!!")
+        );
     }
 
     /**
@@ -48,31 +48,31 @@ public class ReactiveBasics {
     @Test
     public void test_03_mapping() {
         var flux = Flux.just(
-                "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine");
-                // .map(str -> {
-                //     return Tuples.of(str, str.length());
-                // });
+                "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+                .map(str -> {
+                    return Tuples.of(str, str.length());
+                });
 
-        // flux.subscribe(
-        //         l -> LOGGER.info("Got {}", l),
-        //         t -> t.printStackTrace(),
-        //         () -> LOGGER.info("DONE!!")
-        // );
+        flux.subscribe(
+                l -> LOGGER.info("Got {}", l),
+                t -> t.printStackTrace(),
+                () -> LOGGER.info("DONE!!")
+        );
     }
 
     @Test
     public void test_04_flat_map() {
         var flux = Flux.just(
-                "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine");
-        // .flatMap(str -> {
-        //     return Flux.range(0, str.length()).map(n -> str);
-        // });
+                "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+        .flatMap(str -> {
+            return Flux.range(0, str.length()).map(n -> str);
+        });
 
-        // flux.subscribe(
-        //         l -> LOGGER.info("Got {}", l),
-        //         t -> t.printStackTrace(),
-        //         () -> LOGGER.info("DONE!!")
-        // );
+        flux.subscribe(
+                l -> LOGGER.info("Got {}", l),
+                t -> t.printStackTrace(),
+                () -> LOGGER.info("DONE!!")
+        );
     }
 
 

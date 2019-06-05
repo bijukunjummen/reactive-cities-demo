@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.ListenableFuture;
 import org.asynchttpclient.Response;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import samples.geo.domain.City;
 
 import java.util.List;
@@ -19,19 +21,23 @@ import java.util.stream.Collectors;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 
 
-@Disabled
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CitiesNingCallbackTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CitiesNingCallbackTest.class);
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
     private AsyncHttpClient asyncHttpClient = asyncHttpClient();
     private Executor executor = Executors.newWorkStealingPool();
+
+    @LocalServerPort
+    private Integer localServerPort;
 
     @Test
     public void callbackHellTest() throws Exception {
         ListenableFuture<Response> responseListenableFuture = asyncHttpClient
-                .prepareGet("http://localhost:9090/cityids")
+                .prepareGet(String.format("http://localhost:%s/cityids", localServerPort))
                 .execute();
 
         responseListenableFuture.addListener(() -> {
@@ -43,7 +49,7 @@ public class CitiesNingCallbackTest {
                 cityIds.stream().map(cityId -> {
                     ListenableFuture<Response> cityListenableFuture =
                             asyncHttpClient
-                                    .prepareGet("http://localhost:9090/cities/" + cityId)
+                                    .prepareGet(String.format("http://localhost:%d/cities/%d", localServerPort, cityId))
                                     .execute();
 
                     return cityListenableFuture.addListener(() -> {
@@ -61,7 +67,6 @@ public class CitiesNingCallbackTest {
                 throw new RuntimeException(e);
             }
         }, executor);
-
 
         Thread.sleep(3000);
     }

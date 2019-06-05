@@ -3,10 +3,12 @@ package samples.geo.cities;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.asynchttpclient.AsyncHttpClient;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import samples.geo.domain.City;
 
 import java.io.IOException;
@@ -16,13 +18,17 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
 
-@Disabled
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CitiesNingCompletableFutureTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CitiesNingCompletableFutureTest.class);
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ObjectMapper objectMapper;
     private AsyncHttpClient asyncHttpClient = asyncHttpClient();
+
+    @LocalServerPort
+    private Integer localServerPort;
 
     @Test
     public void getCityDetails() {
@@ -51,13 +57,14 @@ public class CitiesNingCompletableFutureTest {
 
     private CompletableFuture<List<Long>> getCityIds() {
         return asyncHttpClient
-                .prepareGet("http://localhost:9090/cityids")
+                .prepareGet(String.format("http://localhost:%d/cityids", localServerPort))
                 .execute()
                 .toCompletableFuture()
                 .thenApply(response -> {
                     String s = response.getResponseBody();
                     try {
-                        List<Long> l = objectMapper.readValue(s, new TypeReference<List<Long>>() {});
+                        List<Long> l = objectMapper.readValue(s, new TypeReference<List<Long>>() {
+                        });
                         return l;
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -67,7 +74,7 @@ public class CitiesNingCompletableFutureTest {
 
 
     private CompletableFuture<City> getCityDetail(Long cityId) {
-        return asyncHttpClient.prepareGet("http://localhost:9090/cities/" + cityId)
+        return asyncHttpClient.prepareGet(String.format("http://localhost:%d/cities/%d", localServerPort, cityId))
                 .execute()
                 .toCompletableFuture()
                 .thenApply(response -> {

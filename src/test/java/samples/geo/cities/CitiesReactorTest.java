@@ -1,22 +1,34 @@
 package samples.geo.cities;
 
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import samples.geo.domain.City;
 
 import java.util.concurrent.CountDownLatch;
 
-@Disabled
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class CitiesReactorTest {
 
-    private WebClient webClient = WebClient.builder().baseUrl("http://localhost:9090").build();
     private static final Logger LOGGER = LoggerFactory.getLogger(CitiesReactorTest.class);
+
+    @LocalServerPort
+    private Integer localServerPort;
+
+    private WebClient webClient;
+
+    @BeforeEach
+    public void beforeEach() {
+        webClient = WebClient.builder().baseUrl(String.format("http://localhost:%d", localServerPort)).build();
+    }
 
     @Test
     public void testGetCities() throws Exception {

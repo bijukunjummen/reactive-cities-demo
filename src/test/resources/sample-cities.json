@@ -1,0 +1,20 @@
+[
+  {
+    "country": "USA",
+    "id": 1,
+    "name": "Portland",
+    "pop": 1600000
+  },
+  {
+    "country": "USA",
+    "id": 2,
+    "name": "Seattle",
+    "pop": 3200000
+  },
+  {
+    "country": "USA",
+    "id": 3,
+    "name": "SFO",
+    "pop": 6400000
+  }
+]
