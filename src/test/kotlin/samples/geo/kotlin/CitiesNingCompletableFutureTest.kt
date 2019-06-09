@@ -7,12 +7,13 @@ import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.web.server.LocalServerPort
 import samples.geo.domain.City
 import java.util.concurrent.CompletableFuture
 import java.util.stream.Collectors.toList
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CitiesNingCompletableFutureTest {
 
     @Autowired
@@ -38,12 +39,10 @@ class CitiesNingCompletableFutureTest {
                             val citiesCompletableFutureOfList: CompletableFuture<List<City>> =
                                     CompletableFuture.allOf(*citiesCompletable.toTypedArray())
                                             .thenApply { _: Void? ->
-                                                val cityList: List<City> =
-                                                        citiesCompletable
-                                                                .stream()
-                                                                .map { it.join() }
-                                                                .collect(toList())
-                                                cityList
+                                                citiesCompletable
+                                                        .stream()
+                                                        .map { it.join() }
+                                                        .collect(toList())
                                             }
                             citiesCompletableFutureOfList
                         }

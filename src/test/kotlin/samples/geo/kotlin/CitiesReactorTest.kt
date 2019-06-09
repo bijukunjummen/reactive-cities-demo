@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToFlux
+import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import samples.geo.domain.City
@@ -19,16 +21,6 @@ class CitiesReactorTest {
     private var localServerPort: Int = 0
 
     private lateinit var webClient: WebClient
-
-    private fun getCityIds(): Flux<Long> {
-        return webClient.get()
-                .uri("/cityids")
-                .exchange()
-                .flatMapMany { response ->
-                    LOGGER.info("Received cities..")
-                    response.bodyToFlux(Long::class.java)
-                }
-    }
 
     @BeforeEach
     fun beforeEach() {
@@ -54,19 +46,28 @@ class CitiesReactorTest {
         cl.await()
     }
 
+    private fun getCityIds(): Flux<Long> {
+        return webClient.get()
+                .uri("/cityids")
+                .exchange()
+                .flatMapMany { response ->
+                    LOGGER.info("Received cities..")
+                    response.bodyToFlux<Long>()
+                }
+    }
+
     private fun getCityDetail(cityId: Long?): Mono<City> {
         return webClient.get()
                 .uri("/cities/{id}", cityId!!)
                 .exchange()
                 .flatMap { response ->
-                    val city: Mono<City> = response.bodyToMono(City::class.java)
+                    val city: Mono<City> = response.bodyToMono()
                     LOGGER.info("Received city..")
                     city
                 }
     }
 
     companion object {
-
         private val LOGGER = LoggerFactory.getLogger(CitiesReactorTest::class.java)
     }
 }
