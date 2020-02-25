@@ -31,8 +31,8 @@ public class ReactiveExecutionModel {
                     LOGGER.info("map1 {}", s);
                     return s + " " + s;
                 })
-                // .subscribeOn(Schedulers.newParallel("sub"))
-                // .publishOn(Schedulers.newParallel("pub"))
+                .subscribeOn(Schedulers.newParallel("sub"))
+                .publishOn(Schedulers.newParallel("pub"))
                 .map(s -> {
                     LOGGER.info("map2 {}", s);
                     return s + " " + s;
@@ -126,17 +126,33 @@ public class ReactiveExecutionModel {
 
     @Test
     public void test_04_back_pressure() throws InterruptedException {
-        Flux<Integer> flux = Flux
-                .range(1, 5000)
-                .doOnNext(n -> LOGGER.info("doOnNext {}", n))
-                .subscribeOn(Schedulers.newParallel("sub"));
+        Flux<Long> flux = Flux
+                .generate(() -> 1L, (Long state, SynchronousSink<Long> sink) -> {
+                    Long nextState = state + 1L;
+                    if (nextState > 1_000_000) {
+                        sink.complete();
+                    } else {
+                        sink.next(nextState);
+                        LOGGER.info("Emitted {}", nextState);
+                    }
+                    return state + 1;
+                })
+                .subscribeOn(Schedulers.newParallel("sub"))
+
+                .flatMap(state -> Flux.just(state), 10)
+                .publishOn(Schedulers.newElastic("pub"), 5)
+                .doOnNext(state -> {
+                    LOGGER.info("doOnNext {}", state);
+                });
+
+
+        // .doOnNext(n -> LOGGER.info("doOnNext {}", n))
+
         // .publishOn(Schedulers.newParallel("pub"));
 
 
         CountDownLatch latch = new CountDownLatch(1);
-
-        flux
-                .publishOn(Schedulers.newParallel("pub"))
+        new Thread(() -> flux
                 .subscribe(new BaseSubscriber<>() {
                     @Override
                     protected void hookOnSubscribe(Subscription subscription) {
@@ -144,13 +160,14 @@ public class ReactiveExecutionModel {
                     }
 
                     @Override
-                    protected void hookOnNext(Integer value) {
+                    protected void hookOnNext(Long value) {
+                        Utils.sleep(200);
                         LOGGER.info("Got {}", value);
-                        Utils.sleep(20);
                         request(5);
                         // cancel();
                     }
-                });
-        latch.await(10, TimeUnit.SECONDS);
+                })).start();
+
+        latch.await(100, TimeUnit.SECONDS);
     }
 }
