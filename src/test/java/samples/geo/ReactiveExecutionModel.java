@@ -1,5 +1,6 @@
 package samples.geo;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
@@ -125,6 +126,7 @@ public class ReactiveExecutionModel {
     }
 
     @Test
+    @Disabled
     public void test_04_back_pressure() throws InterruptedException {
         Flux<Long> flux = Flux
                 .generate(() -> 1L, (Long state, SynchronousSink<Long> sink) -> {

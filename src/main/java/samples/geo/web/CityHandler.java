@@ -11,7 +11,7 @@ import samples.geo.repo.CityRepo;
 
 import java.util.Optional;
 
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Service
 public class CityHandler {
@@ -23,7 +23,7 @@ public class CityHandler {
 
     public Mono<ServerResponse> getCities(ServerRequest request) {
         var cities = cityRepo.findAll();
-        return ServerResponse.ok().body(fromObject(cities));
+        return ServerResponse.ok().body(fromValue(cities));
     }
 
     public Mono<ServerResponse> getCity(ServerRequest request) {
@@ -31,7 +31,7 @@ public class CityHandler {
         Optional<City> cityOptional = cityRepo.findById(id);
 
         return cityOptional
-                .map(city -> ServerResponse.ok().body(fromObject(city)))
+                .map(city -> ServerResponse.ok().body(fromValue(city)))
                 .orElse(ServerResponse
                         .notFound()
                         .build());
@@ -41,13 +41,13 @@ public class CityHandler {
         return request.bodyToMono(City.class)
                 .map(city -> cityRepo.save(city))
                 .flatMap(city ->
-                        ServerResponse.status(HttpStatus.CREATED).body(fromObject(city)));
+                        ServerResponse.status(HttpStatus.CREATED).body(fromValue(city)));
     }
 
     public Mono<ServerResponse> getCityIds(ServerRequest request) {
         return Flux.fromIterable(cityRepo.findAll())
                 .map(city -> city.getId())
                 .collectList()
-                .flatMap(list -> ServerResponse.ok().body(fromObject(list)));
+                .flatMap(list -> ServerResponse.ok().body(fromValue(list)));
     }
 }

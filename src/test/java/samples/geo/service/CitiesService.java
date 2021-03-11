@@ -14,7 +14,7 @@ public class CitiesService {
 
     public CitiesService(
             WebClient.Builder webClientBuilder,
-            @Value("${cityservice.url}") String baseUrl) {
+            @Value("${cityservice.url:}") String baseUrl) {
         this.webClientBuilder = webClientBuilder;
         this.baseUrl = baseUrl;
     }

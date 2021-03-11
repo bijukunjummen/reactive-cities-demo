@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import samples.geo.domain.City
 import java.util.concurrent.CountDownLatch
 
@@ -31,40 +32,40 @@ class CitiesReactorTest {
     fun testGetCities() {
         val cityIdsFlux: Flux<Long> = getCityIds()
         val citiesFlux: Flux<City> = cityIdsFlux
-                .flatMap { this.getCityDetail(it) }
+            .flatMap { this.getCityDetail(it).subscribeOn(Schedulers.boundedElastic()) }
 
         val cl = CountDownLatch(1)
 
         citiesFlux
-                .subscribe({ l -> LOGGER.info(l.toString()) },
-                        { t ->
-                            t.printStackTrace()
-                            cl.countDown()
-                        },
-                        { cl.countDown() })
+            .subscribe({ l -> LOGGER.info(l.toString()) },
+                { t ->
+                    t.printStackTrace()
+                    cl.countDown()
+                },
+                { cl.countDown() })
 
         cl.await()
     }
 
     private fun getCityIds(): Flux<Long> {
         return webClient.get()
-                .uri("/cityids")
-                .exchange()
-                .flatMapMany { response ->
-                    LOGGER.info("Received cities..")
-                    response.bodyToFlux<Long>()
-                }
+            .uri("/cityids")
+            .exchange()
+            .flatMapMany { response ->
+                LOGGER.info("Received cities..")
+                response.bodyToFlux<Long>()
+            }
     }
 
     private fun getCityDetail(cityId: Long?): Mono<City> {
         return webClient.get()
-                .uri("/cities/{id}", cityId!!)
-                .exchange()
-                .flatMap { response ->
-                    val city: Mono<City> = response.bodyToMono()
-                    LOGGER.info("Received city..")
-                    city
-                }
+            .uri("/cities/{id}", cityId!!)
+            .exchange()
+            .flatMap { response ->
+                val city: Mono<City> = response.bodyToMono()
+                LOGGER.info("Received city..")
+                city
+            }
     }
 
     companion object {
